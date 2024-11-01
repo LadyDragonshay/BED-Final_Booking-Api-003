@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  username       String    @unique
+  password       String
+  name           String
+  email          String    @unique
+  phoneNumber    String
+  profilePicture String?
+  bookings       Booking[]
+  reviews        Review[]
+}
+
+model Host {
+  id             String    @id @default(uuid())
+  username       String    @unique
+  password       String
+  name           String
+  email          String    @unique
+  phoneNumber    String
+  profilePicture String?
+  aboutMe        String?
+  properties     Property[]
+}
+
+model Property {
+  id             String    @id @default(uuid())
+  title          String
+  description    String
+  location       String
+  pricePerNight  Float
+  bedroomCount   Int
+  bathRoomCount  Int
+  maxGuestCount  Int
+  rating         Float
+  host           Host      @relation(fields: [hostId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  hostId         String
+  amenities      PropertyAmenity[]
+  bookings       Booking[]
+  reviews        Review[]
+}
+
+model Amenity {
+  id         String   @id @default(uuid())
+  name       String
+  properties PropertyAmenity[]
+}
+
+model PropertyAmenity {
+  propertyId String
+  amenityId  String
+  property   Property  @relation(fields: [propertyId], references: [id])
+  amenity    Amenity   @relation(fields: [amenityId], references: [id])
+  @@id([propertyId, amenityId]) 
+}
+
+model Booking {
+  id             String   @id @default(uuid())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId         String
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  propertyId     String
+  checkinDate    DateTime
+  checkoutDate   DateTime
+  numberOfGuests Int
+  totalPrice     Float
+  bookingStatus  String
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId     String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  propertyId String
+  rating     Int
+  comment    String
+}
